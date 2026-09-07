@@ -660,6 +660,7 @@ void zygisk_companion_entry(int module_fd) {
         }
         process_states = tmp_states;
 
+        process_states[process_states_size].performed_hiding = false;
         process_states[process_states_size].pid = ppid;
         process_states[process_states_size].opened_at = mono_sec_now();
         process_states_size++;
