@@ -166,7 +166,7 @@ int do_zygote_mountinfo_leak_hiding(struct api_table *api_table, JNIEnv *tw_env)
   return 1;
 }
 
-int do_maps_hiding(struct api_table* api_table, JNIEnv* tw_env) {
+int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
   (void) api_table; (void) tw_env;
 
   LOGI("MH: Maps hiding is enabled, hiding traces.");
@@ -185,7 +185,7 @@ int do_maps_hiding(struct api_table* api_table, JNIEnv* tw_env) {
   }
 
   for (size_t i = 0; i < g_maps->size; i++) {
-    struct map* map = &g_maps->maps[i];
+    struct map *map = &g_maps->maps[i];
 
     if (map->path == NULL || map->dev != st.st_dev ||
         str_starts_with(map->path, "/data/adb/modules/rezygisk/") == true ||
