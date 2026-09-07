@@ -108,6 +108,8 @@ struct maps *parse_maps(const char *filename) {
         if (write_loop(write_fd, &var, sizeof(var)) != sizeof(var)) { \
           PLOGE("Write " #var);                                       \
                                                                       \
+          fclose(fp);                                                 \
+                                                                      \
           close(write_fd);                                            \
           close(read_fd);                                             \
                                                                       \
@@ -140,6 +142,8 @@ struct maps *parse_maps(const char *filename) {
       if (path_len != 0) {
         if (write_loop(write_fd, line + path_offset, path_len) != (ssize_t)path_len) {
           PLOGE("Write path");
+
+          fclose(fp);
 
           close(write_fd);
           close(read_fd);
@@ -336,6 +340,8 @@ struct mountsinfo *parse_mountinfo(const char *filename) {
       if (write_loop(write_fd, &var, sizeof(var)) != sizeof(var)) { \
         PLOGE("write " #var);                                       \
                                                                     \
+        fclose(fp);                                                 \
+                                                                    \
         close(write_fd);                                            \
         close(read_fd);                                             \
                                                                     \
@@ -347,6 +353,8 @@ struct mountsinfo *parse_mountinfo(const char *filename) {
         if (write_loop(write_fd, &var ## _len, sizeof(size_t)) != sizeof(size_t)) {              \
           PLOGE("Write " #var "_len");                                                           \
                                                                                                  \
+          fclose(fp);                                                                            \
+                                                                                                 \
           close(write_fd);                                                                       \
           close(read_fd);                                                                        \
                                                                                                  \
@@ -356,6 +364,8 @@ struct mountsinfo *parse_mountinfo(const char *filename) {
         if (var ## _len != 0) {                                                                  \
           if (write_loop(write_fd, line + var ## _start, var ## _len) != (ssize_t)var ## _len) { \
             PLOGE("Write " #var);                                                                \
+                                                                                                 \
+            fclose(fp);                                                                          \
                                                                                                  \
             close(write_fd);                                                                     \
             close(read_fd);                                                                      \
@@ -383,6 +393,8 @@ struct mountsinfo *parse_mountinfo(const char *filename) {
       uint8_t has_more_maps = 1;
       if (write_loop(write_fd, &has_more_maps, sizeof(has_more_maps)) != sizeof(has_more_maps)) {
         PLOGE("Write has_more_maps");
+
+        fclose(fp);
 
         close(write_fd);
         close(read_fd);
