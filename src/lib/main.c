@@ -787,6 +787,8 @@ void zygisk_companion_entry(int module_fd) {
               LOGD("Module %s is a ReVanced module with umount allowed.", entry->d_name);
             }
           }
+
+          closedir(dir);
         }
 
         if (tw_rvx_modules_size == 0) {
