@@ -929,6 +929,8 @@ void zygisk_companion_entry(int module_fd) {
         LOGI("Finished umounting %s", rvx_mount);
       }
 
+      free(process_name);
+
       LOGI("Umounted %zu ReVanced mounts to Zygisk module.", rvx_mounts_size);
 
       uint8_t ret_state = 1;
