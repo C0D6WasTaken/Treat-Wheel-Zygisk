@@ -949,6 +949,7 @@ void zygisk_companion_entry(int module_fd) {
 
         free(rvx_mounts);
         rvx_mounts = NULL;
+        rvx_mounts_size = 0;
       }
     } else if (op == DAEMON_GOODBYE) {
       LOGI("Received goodbye operation, exiting companion.");
