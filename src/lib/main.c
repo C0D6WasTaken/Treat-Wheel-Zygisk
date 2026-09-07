@@ -521,7 +521,7 @@ void zygisk_companion_entry(int module_fd) {
 
           has_crashed = true;
 
-          i--;
+          break;
         }
       }
 
