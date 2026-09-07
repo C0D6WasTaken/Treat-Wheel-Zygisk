@@ -397,67 +397,57 @@ void zygisk_companion_entry(int module_fd) {
         char path[PATH_MAX];
         snprintf(path, sizeof(path), "/data/adb/modules/%s/disable", entry->d_name);
 
-        struct stat st2;
-        if (stat(path, &st2) == 0) {
+        if (access(path, F_OK) == 0) {
           LOGI("Module %s is disabled, skipping.", entry->d_name);
 
           continue;
         }
 
-        snprintf(path, sizeof(path), "/data/adb/modules/%s/system/fonts", entry->d_name);
+        static const char *font_subdirs[] = { "system/fonts", "product/fonts" };
+        for (size_t i = 0; i < sizeof(font_subdirs) / sizeof(font_subdirs[0]); i++) {
+          snprintf(path, sizeof(path), "/data/adb/modules/%s/%s", entry->d_name, font_subdirs[i]);
 
-        DIR *fonts_dir = opendir(path);
-        if (!fonts_dir) goto try_load_product_fonts;
+          DIR *fonts_dir = opendir(path);
+          if (!fonts_dir) continue;
 
-        load_fonts:
-          ;
+          struct dirent *font_entry;
+          while ((font_entry = readdir(fonts_dir)) != NULL) {
+            if (font_entry->d_type != DT_REG) continue;
 
-        struct dirent *font_entry;
-        while ((font_entry = readdir(fonts_dir)) != NULL) {
-          if (font_entry->d_type != DT_REG) continue;
+            char font_file[PATH_MAX];
+            snprintf(font_file, sizeof(font_file), "%s/%s", path, font_entry->d_name);
 
-          char font_file[PATH_MAX];
-          snprintf(font_file, sizeof(font_file), "%s/%s", path, font_entry->d_name);
+            LOGD("Found font file: %s", font_file);
 
-          LOGD("Found font file: %s", font_file);
+            int fd = open(font_file, O_RDONLY | O_CLOEXEC);
+            if (fd == -1) {
+              PLOGE("Open font file");
 
-          int fd = open(font_file, O_RDONLY | O_CLOEXEC);
-          if (fd == -1) {
-            PLOGE("Open font file");
+              continue;
+            }
 
-            continue;
+            int *tmp_fonts_fds = realloc(fonts_fds, sizeof(int) * (fonts_length + 1));
+            if (!tmp_fonts_fds) {
+              PLOGE("Failed to allocate memory for fonts_fds");
+
+              close(fd);
+              closedir(fonts_dir);
+              closedir(dir);
+
+              free(fonts_fds);
+
+              uint8_t ret_state = 0;
+              write_loop(module_fd, &ret_state, sizeof(ret_state));
+
+              goto cleanup;
+            }
+            fonts_fds = tmp_fonts_fds;
+
+            fonts_fds[fonts_length++] = fd;
           }
 
-          int *tmp_fonts_fds = realloc(fonts_fds, sizeof(int) * (fonts_length + 1));
-          if (!tmp_fonts_fds) {
-            PLOGE("Failed to allocate memory for fonts_fds");
-
-            close(fd);
-            closedir(fonts_dir);
-            closedir(dir);
-
-            free(fonts_fds);
-
-            uint8_t ret_state = 0;
-            write_loop(module_fd, &ret_state, sizeof(ret_state));
-
-            goto cleanup;
-          }
-          fonts_fds = tmp_fonts_fds;
-
-          fonts_fds[fonts_length++] = fd;
+          closedir(fonts_dir);
         }
-
-        closedir(fonts_dir);
-
-        try_load_product_fonts:
-
-        snprintf(path, sizeof(path), "/data/adb/modules/%s/product/fonts", entry->d_name);
-
-        fonts_dir = opendir(path);
-        if (!fonts_dir) continue;
-
-        goto load_fonts;
       }
 
       closedir(dir);
