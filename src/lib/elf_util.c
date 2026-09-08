@@ -114,10 +114,14 @@ size_t calculate_valid_symtabs_amount(struct elf_img *img) {
   }
 
   char *symtab_strings = offsetOf_char(img->header, img->symstr_offset_for_symtab);
+  ElfW(Shdr) *symtab_str_shdr = img->section_header + img->symtab->sh_link;
 
   for (ElfW(Off) i = 0; i < img->symtab_count; i++) {
     const char *sym_name = symtab_strings + img->symtab_start[i].st_name;
     if (!sym_name)
+      continue;
+
+    if (img->symtab_start[i].st_name >= symtab_str_shdr->sh_size)
       continue;
 
     unsigned int st_type = ELF_ST_TYPE(img->symtab_start[i].st_info);
@@ -700,6 +704,7 @@ ElfW(Addr) LinearLookup(struct elf_img *img, const char *restrict name, unsigned
 
   for (size_t i = 0; i < img->symtabs_count_; i++) {
     ElfW(Sym) *sym = img->symtabs_[i];
+    if (!sym) continue;
 
     const char *sym_name = offsetOf_char(img->header, img->symstr_offset_for_symtab) + sym->st_name;
     if (sym->st_shndx == SHN_UNDEF || strcmp(name, sym_name) != 0)
@@ -732,6 +737,7 @@ ElfW(Addr) LinearLookupByPrefix(struct elf_img *img, const char *prefix, unsigne
 
   for (size_t i = 0; i < img->symtabs_count_; i++) {
     ElfW(Sym) *sym = img->symtabs_[i];
+    if (!sym) continue;
 
     const char *name = offsetOf_char(img->header, img->symstr_offset_for_symtab) + sym->st_name;
     if (sym->st_shndx == SHN_UNDEF || strncmp(name, prefix, prefix_len) != 0)
