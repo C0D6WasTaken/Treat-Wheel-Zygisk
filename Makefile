@@ -13,7 +13,7 @@ TARGET_x86 = i686-linux-android$(API_LEVEL)
 TARGET_x64 = x86_64-linux-android$(API_LEVEL)
 
 CFILES_ZYGISK = src/lib/elf_util.c src/lib/hiding.c src/lib/main.c src/lib/rz_daemon.c src/lib/utils.c
-CFILES_CMD = src/cmd/main.c src/cmd/utils.c src/lib/utils.c src/system_properties/src/*.c
+CFILES_CMD = src/cmd/main.c src/cmd/utils.c src/lib/utils.c $(wildcard src/system_properties/src/*.c)
 
 CFLAGS = -llog -fvisibility=hidden -fvisibility-inlines-hidden -Wpedantic     \
          -Wall -Wextra -Werror -Wformat -Wuninitialized -Wshadow -std=c99     \
