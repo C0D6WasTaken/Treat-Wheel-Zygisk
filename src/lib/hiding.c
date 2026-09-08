@@ -212,6 +212,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
     memcpy(copy, (void*) map->addr_start, size);
     if (mremap(copy, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, (void*) map->addr_start) == MAP_FAILED) {
       PLOGE("MH: mremap failed.");
+
       continue;
     }
     mprotect((void*) map->addr_start, size, map->perms);
