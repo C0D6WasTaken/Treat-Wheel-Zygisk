@@ -204,7 +204,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
       PLOGE("MH: mmap failed.");
       continue;
     }
-    if ((map->perms & PROT_READ) == 0 && mprotect((void*) map->addr_start, size, PROT_READ) == -1) {
+    if ((map->perms & PROT_READ) == 0 && mprotect((void *) map->addr_start, size, PROT_READ) == -1) {
       PLOGE("MH: mprotect failed.");
 
       continue;
