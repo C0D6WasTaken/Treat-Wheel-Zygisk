@@ -178,7 +178,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
     return 0;
   }
 
-  if (g_maps != NULL && g_maps->size == 0) {
+  if (g_maps->size == 0) {
     LOGI("MH: No suspicious maps found, returning.");
 
     return 1;
@@ -188,10 +188,10 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
     struct map *map = &g_maps->maps[i];
 
     if (map->path == NULL || map->dev != st.st_dev ||
-        str_starts_with(map->path, "/data/adb/modules/rezygisk/") == true ||
-        str_starts_with(map->path, "/data/adb/modules/treat_wheel/") == true ||
-        (str_starts_with(map->path, "/data/adb/") == false &&
-        str_starts_with(map->path, "/data/local/tmp/") == false)
+        str_starts_with(map->path, "/data/adb/modules/rezygisk/") ||
+        str_starts_with(map->path, "/data/adb/modules/treat_wheel/") ||
+        (!str_starts_with(map->path, "/data/adb/") &&
+        !str_starts_with(map->path, "/data/local/tmp/"))
         ) {
       continue;
     }
@@ -199,7 +199,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
     LOGI("MH: Hiding suspicious map: %p - %p | Path: %s", (void *)map->addr_start, (void *)map->addr_end, map->path);
 
     size_t size = (size_t)(map->addr_end - map->addr_start);
-    void* copy = mmap(NULL, size, PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    void *copy = mmap(NULL, size, PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if (copy == MAP_FAILED) {
       PLOGE("MH: mmap failed.");
 
@@ -211,7 +211,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
       continue;
     }
 
-    memcpy(copy, (void*) map->addr_start, size);
+    memcpy(copy, (void *) map->addr_start, size);
     if (mremap(copy, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, (void *) map->addr_start) == MAP_FAILED) {
       PLOGE("MH: mremap failed.");
 
@@ -219,9 +219,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
     }
     mprotect((void *) map->addr_start, size, map->perms);
 
-    if (map->perms & PROT_EXEC)
-      __builtin___clear_cache((char*) map->addr_start, (char*) (map->addr_start + size));
-    }
+    if (map->perms & PROT_EXEC) __builtin___clear_cache((char *) map->addr_start, (char *) (map->addr_start + size));
   }
 
   LOGI("MH: Finished hiding maps traces.");
