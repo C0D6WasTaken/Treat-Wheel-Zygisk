@@ -202,6 +202,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
     void* copy = mmap(NULL, size, PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if (copy == MAP_FAILED) {
       PLOGE("MH: mmap failed.");
+
       continue;
     }
     if ((map->perms & PROT_READ) == 0 && mprotect((void *) map->addr_start, size, PROT_READ) == -1) {
