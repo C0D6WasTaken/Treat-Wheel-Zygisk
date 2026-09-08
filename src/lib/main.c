@@ -592,14 +592,15 @@ void zygisk_companion_entry(int module_fd) {
           }
         }
 
-        if (process_states_size == 0) {
+        bool reset_status = process_states_size == 0;
+        pthread_mutex_unlock(&process_states_lock);
+
+        if (reset_status) {
           LOGD("No existing process states, resetting status to hiding.");
 
           int ffd = open("/data/adb/treat_wheel/status", O_RDWR | O_CREAT, 0644);
           if (ffd == -1) {
             PLOGE("Open status file");
-
-            pthread_mutex_unlock(&process_states_lock);
 
             goto cleanup;
           }
@@ -614,8 +615,6 @@ void zygisk_companion_entry(int module_fd) {
 
               close(ffd);
 
-              pthread_mutex_unlock(&process_states_lock);
-
               continue;
             }
           }
@@ -627,7 +626,6 @@ void zygisk_companion_entry(int module_fd) {
 
           close(ffd);
         }
-        pthread_mutex_unlock(&process_states_lock);
       }
 
       if (status == MODULE_STATUS_MIDPERFORMING) {

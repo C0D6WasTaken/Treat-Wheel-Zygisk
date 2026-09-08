@@ -48,7 +48,7 @@ endif
 
 CLANG ?= $(CC)
 
-.PHONY: all build release debug installModule installModuleAndReboot updateWebUI
+.PHONY: all build release debug installModule installModuleAndReboot updateWebUI analyze analyze_arch
 
 all: debug
 
@@ -99,6 +99,16 @@ clean:
 	@rm -rf $(BUILD_PATH)/zygisk
 	@rm -rf $(BUILD_PATH)/webroot
 	@rm -rf ../build/TreatWheel.zip > /dev/null
+
+analyze:
+	@for arch in $(ARCHS); do              \
+	  echo "Analyzing for $$arch...";      \
+	  $(MAKE) -s analyze_arch ARCH=$$arch; \
+	done
+
+analyze_arch:
+	@$(CLANG) --target=$(TARGET_$(ARCH)) -DIS_ZYGISK_LIB $(CFILES_ZYGISK) $(CFLAGS) -Wno-unused-command-line-argument --analyze -Xanalyzer -analyzer-output=text
+	@$(CLANG) --target=$(TARGET_$(ARCH)) -DIS_CMD $(CFILES_CMD) $(CFLAGS) -Isrc/system_properties/include -DUTILS_NO_SSL -Wno-unused-command-line-argument --analyze -Xanalyzer -analyzer-output=text
 
 installModule: build
 	$(ADB_PUSH) build/TreatWheel.zip /data/local/tmp

@@ -148,6 +148,7 @@ static const property_entry *trie_exact(const trie_node *n, int i) {
 static int trie_cmp_fn(uint32_t off, void *cookie) {
   struct trie_cmp *s = cookie;
   trie_node ch = trie_child(s->node, (int)off);
+  if (!ch.node) return -1;
 
   int c = strncmp(pia_str(ch.pia, trie_ent(&ch)->name_offset), s->name, s->len);
   if (c == 0 && trie_ent(&ch)->namelen > s->len) return 1;
@@ -187,7 +188,7 @@ void property_info_area_file_get_property_info_indexes(const property_info_area_
   trie_node node = pia_trie(pia, pia_hdr(pia)->root_offset);
   const char *rest = name;
 
-  while (1) {
+  while (node.node) {
     const char *sep = strchr(rest, '.');
     if (node.node->property_entry && trie_ent(&node)->context_index != ~0u) rci = trie_ent(&node)->context_index;
     if (node.node->property_entry && trie_ent(&node)->type_index != ~0u) rti = trie_ent(&node)->type_index;
@@ -204,16 +205,19 @@ void property_info_area_file_get_property_info_indexes(const property_info_area_
     rest = sep + 1;
   }
 
-  for (uint32_t i = 0; i < node.node->num_exact_matches; ++i) {
-    const property_entry *e = trie_exact(&node, (int)i);
-    if (!strcmp(pia_str(pia, e->name_offset), rest)) {
-      if (ci) *ci = e->context_index != ~0u ? e->context_index : rci;
-      if (ti) *ti = e->type_index != ~0u ? e->type_index : rti;
-      return;
+  if (node.node) {
+    for (uint32_t i = 0; i < node.node->num_exact_matches; ++i) {
+      const property_entry *e = trie_exact(&node, (int)i);
+      if (!strcmp(pia_str(pia, e->name_offset), rest)) {
+        if (ci) *ci = e->context_index != ~0u ? e->context_index : rci;
+        if (ti) *ti = e->type_index != ~0u ? e->type_index : rti;
+        return;
+      }
     }
+
+    check_prefix(rest, &node, &rci, &rti);
   }
 
-  check_prefix(rest, &node, &rci, &rti);
   if (ci) *ci = rci;
   if (ti) *ti = rti;
 }
