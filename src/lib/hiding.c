@@ -198,7 +198,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
 
     LOGI("MH: Hiding suspicious map: %p - %p | Path: %s", (void *)map->addr_start, (void *)map->addr_end, map->path);
 
-    size_t size = (size_t) (map->addr_end - map->addr_start);
+    size_t size = (size_t)(map->addr_end - map->addr_start);
     void* copy = mmap(NULL, size, PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if (copy == MAP_FAILED) {
       PLOGE("MH: mmap failed.");
