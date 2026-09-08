@@ -217,7 +217,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
     }
     mprotect((void *) map->addr_start, size, map->perms);
 
-    if (map->perms & PROT_EXEC) {
+    if (map->perms & PROT_EXEC)
       __builtin___clear_cache((char*) map->addr_start, (char*) (map->addr_start + size));
     }
   }
