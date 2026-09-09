@@ -196,15 +196,30 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
       continue;
     }
 
-    LOGI("MH: Hiding suspicious map: %p - %p", (void *)map->addr_start, (void *)map->addr_end);
+    LOGI("MH: Hiding suspicious map: %p - %p | Path: %s", (void *)map->addr_start, (void *)map->addr_end, map->path);
 
     size_t size = (size_t)(map->addr_end - map->addr_start);
     void *copy = mmap(NULL, size, PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    if ((map->perms & PROT_READ) == 0) mprotect((void *)map->addr_start, size, PROT_READ);
+    if (copy == MAP_FAILED) {
+      PLOGE("MH: mmap failed.");
 
-    memcpy(copy, (void *)map->addr_start, size);
-    mremap(copy, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, (void *)map->addr_start);
-    mprotect((void *)map->addr_start, size, map->perms);
+      continue;
+    }
+    if ((map->perms & PROT_READ) == 0 && mprotect((void *) map->addr_start, size, PROT_READ) == -1) {
+      PLOGE("MH: mprotect failed.");
+
+      continue;
+    }
+
+    memcpy(copy, (void *) map->addr_start, size);
+    if (mremap(copy, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, (void *) map->addr_start) == MAP_FAILED) {
+      PLOGE("MH: mremap failed.");
+
+      continue;
+    }
+    mprotect((void *) map->addr_start, size, map->perms);
+
+    if (map->perms & PROT_EXEC) __builtin___clear_cache((char *) map->addr_start, (char *) (map->addr_start + size));
   }
 
   LOGI("MH: Finished hiding maps traces.");
