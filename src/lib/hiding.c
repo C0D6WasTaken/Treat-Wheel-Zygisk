@@ -192,7 +192,7 @@ int do_maps_hiding(struct api_table *api_table, JNIEnv *tw_env) {
         str_starts_with(map->path, "/data/adb/modules/treat_wheel/") ||
         (!str_starts_with(map->path, "/data/adb/") &&
         !str_starts_with(map->path, "/data/local/tmp/"))
-        ) {
+    ) {
       continue;
     }
 
